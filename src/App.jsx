@@ -6,9 +6,7 @@
 
 // DONE!!! реализовать CRUD-операции, добавить возможность добавления, изменения и удаления дела;
 
-// Добавить пользовательские хуки
-
-// реализовать поиск дел по заданной фразе (для нахождения элемента в тексте дела должен быть совпадающий с введенной фразой фрагмент);
+// DONE!!! реализовать поиск дел по заданной фразе (для нахождения элемента в тексте дела должен быть совпадающий с введенной фразой фрагмент);
 
 // реализовать кнопку для включения режима сортировки дел по алфавиту, если кнопка не нажата — изначальная сортировка (т. е. отсутствие сортировки).
 
@@ -16,9 +14,15 @@
 
 import { useState } from 'react';
 import styles from './app.module.css';
-import { useGetItems, useAddItem, useChangeItem, useDeleteItem } from './hooks/index';
+import {
+  useGetItems,
+  useAddItem,
+  useChangeItem,
+  useDeleteItem,
+  useSearchItem,
+} from './hooks/index';
 
-const AppLayout = ({todoList, isLoading, addItem, deleteItem, changeItem}) => {
+const AppLayout = ({todoList, isLoading, addItem, deleteItem, changeItem, searchItem}) => {
   return (
     <div className={styles.app}>
       <h1>To-do list</h1>
@@ -50,12 +54,23 @@ const AppLayout = ({todoList, isLoading, addItem, deleteItem, changeItem}) => {
           }
         </ul>
       }
-      <button
-        type="button"
-        className={styles.button}
-        onClick={addItem}
-        disabled={isLoading}
-      >Add a to-do item</button>
+
+      <div className={styles.button__container}>
+        <button
+          type="button"
+          className={styles.button}
+          onClick={addItem}
+          disabled={isLoading}
+        >Add a to-do item</button>
+
+        <button
+          type="button"
+          className={styles.button}
+          onClick={searchItem}
+          disabled={isLoading}
+        >Search</button>
+      </div>
+
     </div>
   )
 };
@@ -75,22 +90,7 @@ export const AppContainer = () => {
 
   const deleteItem = useDeleteItem(ENDPOINT, setIsLoading, () => setRefreshFlag(!refreshFlag));
 
-  // const deleteItem = (id) => {
-  //     fetch(
-  //       `${ENDPOINT}/${id}`,
-  //       { method: 'DELETE' }
-  //     )
-  //       .then((rawJson) => rawJson.json())
-  //       .then((response) => {
-  //           console.log('response on delete', response);
-
-  //           setRefreshFlag(!refreshFlag);
-  //       })
-  //       .catch(error => {
-  //         console.log(error);
-  //         setIsLoading(false);
-  //       })
-  // };
+  const searchItem = useSearchItem(ENDPOINT, setIsLoading, setTodoList);
 
   return <AppLayout
     todoList={todoList}
@@ -98,5 +98,6 @@ export const AppContainer = () => {
     addItem={addItem}
     changeItem={changeItem}
     deleteItem={deleteItem}
+    searchItem={searchItem}
   />;
 };

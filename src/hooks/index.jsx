@@ -3,3 +3,4 @@ export * from './use-get-items';
 export * from './use-add-item';
 export * from './use-change-item';
 export * from './use-delete-item';
+export * from './use-search-item';
