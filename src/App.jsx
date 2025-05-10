@@ -8,9 +8,9 @@
 
 // DONE!!! реализовать поиск дел по заданной фразе (для нахождения элемента в тексте дела должен быть совпадающий с введенной фразой фрагмент);
 
-// реализовать кнопку для включения режима сортировки дел по алфавиту, если кнопка не нажата — изначальная сортировка (т. е. отсутствие сортировки).
+// DONE!!! реализовать кнопку для включения режима сортировки дел по алфавиту, если кнопка не нажата — изначальная сортировка (т. е. отсутствие сортировки).
 
-// Дополнительно. Реализовать продвинутый поиск с помощью debounce().
+// DONE!!! Дополнительно. Реализовать продвинутый поиск с помощью debounce().
 
 import { useState } from 'react';
 import styles from './app.module.css';
@@ -19,13 +19,32 @@ import {
   useAddItem,
   useChangeItem,
   useDeleteItem,
-  useSearchItem,
+  useDebounce,
 } from './hooks/index';
 
-const AppLayout = ({todoList, isLoading, addItem, deleteItem, changeItem, searchItem}) => {
+const AppLayout = ({
+  todoList,
+  isLoading,
+  addItem,
+  deleteItem,
+  changeItem,
+  toggleSort,
+  sort,
+  query,
+  setQuery,
+}) => {
   return (
     <div className={styles.app}>
       <h1>To-do list</h1>
+
+      <input
+        type="text"
+        placeholder="Type to search..."
+        value={query}
+        className={styles.input}
+        onChange={({target}) => setQuery(target.value)}
+      />
+
       {isLoading ?
         <div className={styles.spinner}></div>
         :
@@ -40,14 +59,14 @@ const AppLayout = ({todoList, isLoading, addItem, deleteItem, changeItem, search
                     className={`${styles.button} ${styles['button--change']}`}
                     onClick={() => changeItem(listItem.id)}
                     disabled={isLoading}
-                  >Изменить</button>
+                  >Change</button>
 
                   <button
                     type="button"
                     className={`${styles.button} ${styles['button--delete']}`}
                     onClick={() => deleteItem(listItem.id)}
                     disabled={isLoading}
-                  >Удалить</button>
+                  >Delete</button>
                 </div>
               </li>
             ))
@@ -66,9 +85,11 @@ const AppLayout = ({todoList, isLoading, addItem, deleteItem, changeItem, search
         <button
           type="button"
           className={styles.button}
-          onClick={searchItem}
+          onClick={toggleSort}
           disabled={isLoading}
-        >Search</button>
+        >
+          {sort === '' ? 'Sort items' : 'Turn sorting off'}
+        </button>
       </div>
 
     </div>
@@ -81,16 +102,28 @@ export const AppContainer = () => {
   const [todoList, setTodoList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
+  const [sort, setSort] = useState('');
+  const [query, setQuery] = useState('');
 
-  useGetItems(ENDPOINT, setTodoList, refreshFlag, setIsLoading);
+  const debouncedQuery = useDebounce(query, 300, () => setRefreshFlag(!refreshFlag)); // 300ms delay
 
-  const addItem = useAddItem(ENDPOINT, setIsLoading, () => setRefreshFlag(!refreshFlag));
+  const currentEndpoint = `${ENDPOINT}?q=${debouncedQuery}&_sort=${sort}`;
+
+  useGetItems(currentEndpoint, setTodoList, refreshFlag, setIsLoading);
+
+  const addItem = useAddItem(currentEndpoint, setIsLoading, () => {
+    setRefreshFlag(!refreshFlag);
+    setQuery('');
+  });
 
   const changeItem = useChangeItem(ENDPOINT, setIsLoading, () => setRefreshFlag(!refreshFlag));
 
   const deleteItem = useDeleteItem(ENDPOINT, setIsLoading, () => setRefreshFlag(!refreshFlag));
 
-  const searchItem = useSearchItem(ENDPOINT, setIsLoading, setTodoList);
+  const toggleSort = () => {
+    setSort(prevValue => prevValue === '' ? 'title' : '');
+    setRefreshFlag(!refreshFlag);
+  }
 
   return <AppLayout
     todoList={todoList}
@@ -98,6 +131,9 @@ export const AppContainer = () => {
     addItem={addItem}
     changeItem={changeItem}
     deleteItem={deleteItem}
-    searchItem={searchItem}
+    query={query}
+    setQuery={setQuery}
+    sort={sort}
+    toggleSort={toggleSort}
   />;
 };

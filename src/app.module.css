@@ -10,6 +10,16 @@
 }
 /* APP */
 
+/* SEARCH */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 24px;
+  border-radius: 10px;
+  text-align: center;
+}
+/* SEARCH */
+
 /* SPINNER */
 .spinner {
   margin-right: auto;
